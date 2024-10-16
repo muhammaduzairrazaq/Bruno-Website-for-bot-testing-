@@ -19,5 +19,5 @@ def remove_href_from_file(html_file):
     print(f"Modified HTML saved: {html_file}")
 
 # Example usage:
-html_file = 'Furna-Tech™ _ Interactive Furniture Solutions.html'  # Replace with your saved HTML file path
+html_file = 'Myne Lend - MYNE LEND Jamaica Limited.html'  # Replace with your saved HTML file path
 remove_href_from_file(html_file)

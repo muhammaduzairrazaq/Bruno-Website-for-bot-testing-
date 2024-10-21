@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visit Counts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            font: normal normal normal medium/normal serif;
+            font-size: 25px;
+        }
+        h1 {
+            color: rgb(47, 113, 255);
+            font-size: 40px;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            font-size: 18px;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: rgb(47, 113, 255);
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        tr:hover {
+            background-color: rgba(150, 199, 255, 0.5);
+        }
+        a {
+            font-size: 18px;
+            color: rgb(47, 113, 255);
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            margin-top: 50px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Website Visit Counts</h1>
+    <table>
+        <tr>
+            <th>Website</th>
+            <th>Visit Count</th>
+        </tr>
+        {% for website, count in visit_counts.items() %}
+        <tr>
+            <td>{{ website }}</td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <p class="back-link"><a href="{{ url_for('index') }}">Back to Home</a></p>
+</body>
+</html>

@@ -1,4 +1,4 @@
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -27,7 +27,6 @@
             outline: none;
             box-shadow: 0 10px 15px rgba(150, 199, 255, 0.5); 
             font: normal normal normal medium/normal serif;
-
         }
         #js_code {
             height: 250px;
@@ -37,7 +36,6 @@
             outline: none;
             box-shadow: 0 10px 15px rgba(150, 199, 255, 0.5); 
         }
-    
         .submit_button {
             height: 50px;
             padding: 8px;
@@ -48,7 +46,6 @@
             font: normal normal normal medium/normal serif;
             box-shadow: 0 10px 15px rgba(107, 107, 107, 0.5); 
             margin-top: 50px;
-
         }
         .submit_button:hover {
             background: white;
@@ -58,109 +55,13 @@
             color: rgb(47, 113, 255);
             font-size: 60px !important;
             font: normal normal normal medium/normal serif;
-            
         }
-        p{
+        p {
             font-size: 18px !important;
         }
-
         form {
             margin-top: 100px;
         }
-
-        .robo-img {
-            height: 100px;
-            width: 100px;
-        }
-
-    </style>
-</head>
-<body>
-    <h1 class="main-heading">Visualize Chatbot on your Website <img class="robo-img" src="../static/robo.png"></h1>
-    <p>Add the website name and the JavaScript code you want to insert below.</p>
-    
-    <form action="/inject_js" method="post">
-        <input type="text" id="site_name" name="site_name" required placeholder="Enter the website name"><br>
-        <textarea id="js_code" name="js_code" rows="10" required placeholder="Insert the javascript code of chatbot"></textarea><br>
-        <button type="submit" class="submit_button">Inject JavaScript</button>
-    </form>
-</body>
-</html> -->
-
-
-
-
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home</title>
-    <style>
-          body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 50px;
-            font: normal normal normal medium/normal serif;
-            font-size: 25px;
-        }
-        h1 {
-            color: #333;
-        }
-        input, textarea {
-            width: 50%;
-            padding: 10px;
-            margin: 10px 0;
-        }
-        #site_name {
-            height: 50px;
-            border-radius: 10px;
-            border: none;
-            outline: none;
-            box-shadow: 0 10px 15px rgba(150, 199, 255, 0.5); 
-            font: normal normal normal medium/normal serif;
-
-        }
-        #js_code {
-            height: 250px;
-            font: normal normal normal medium/normal serif;
-            border-radius: 10px;
-            border: none;
-            outline: none;
-            box-shadow: 0 10px 15px rgba(150, 199, 255, 0.5); 
-        }
-    
-        .submit_button {
-            height: 50px;
-            padding: 8px;
-            border-radius: 10px;
-            font-size: 18px;
-            border: none;
-            background: linear-gradient(to right, rgb(47, 113, 255), #FFFFFF);
-            font: normal normal normal medium/normal serif;
-            box-shadow: 0 10px 15px rgba(107, 107, 107, 0.5); 
-            margin-top: 50px;
-
-        }
-        .submit_button:hover {
-            background: white;
-            color: black;
-        }
-        .main-heading {
-            color: rgb(47, 113, 255);
-            font-size: 60px !important;
-            font: normal normal normal medium/normal serif;
-            
-        }
-        p{
-            font-size: 18px !important;
-        }
-
-        form {
-            margin-top: 100px;
-        }
-
         .robo-img {
             height: 100px;
             width: 100px;
@@ -176,6 +77,7 @@
     </style>
 </head>
 <body>
+    <p><a href="{{ url_for('list_websites') }}">View Saved Websites</a>   |   <a href="{{ url_for('visit_counts') }}">View Visit Counts</a></p>
     <h1 class="main-heading">Visualize Chatbot on your Website <img class="robo-img" src="../static/robo.png"></h1>
     <p>Add the website name and the JavaScript code you want to insert below.</p>
     
@@ -184,7 +86,5 @@
         <textarea id="js_code" name="js_code" rows="10" required placeholder="Insert the JavaScript code of chatbot"></textarea><br>
         <button type="submit" class="submit_button">Inject JavaScript</button>
     </form>
-    
-    <p><a href="{{ url_for('list_websites') }}">View Saved Websites</a></p>
 </body>
 </html>

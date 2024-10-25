@@ -1,20 +1,14 @@
-from flask import Flask, render_template, request, send_from_directory, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
 import os
 import shutil
 from bs4 import BeautifulSoup
 
 app = Flask(__name__)
+app.secret_key = 'your_secret_key'  # Needed for session handling
 
-# Base directory for the websites folder
-WEBSITES_DIR = 'websites'
-
-# Log file for processed files
+# Log files
 PROCESSED_FILES_LOG = 'processed_files.txt'
-
-# Log file for JavaScript-injected files
 JS_INJECTED_FILES_LOG = 'js_injected_files.txt'
-
-# Log file for visit counts
 VISIT_COUNTS_LOG = 'visit_counts.txt'
 
 # Functions for processing HTML files
@@ -57,7 +51,17 @@ def save_visit_counts(visit_counts):
             f.write(f"{name}:{count}\n")
 
 def increment_visit_count(filename):
-    """Increment the visit count for the given filename."""
+    """Increment the visit count for the given filename only if it exists in the websites directory."""
+    if 'WEBSITES_DIR' not in session:
+        return
+
+    # List only HTML files in the directory to ensure the count is only for those
+    websites_dir_files = [f for f in os.listdir(session['WEBSITES_DIR']) if f.endswith('.html')]
+
+    if filename not in websites_dir_files:
+        print(f"File {filename} does not match any file in the directory, count not incremented.")
+        return
+
     visit_counts = load_visit_counts()
     if filename in visit_counts:
         visit_counts[filename] += 1
@@ -107,10 +111,6 @@ def remove_href_from_file(html_file):
 
 def process_html_file_if_needed(file_path, log_file='processed_files.txt'):
     """Process the HTML file if it hasn't been processed already, only within the base directory."""
-    if os.path.dirname(file_path) != WEBSITES_DIR:
-        print(f"Skipping file in subdirectory: {file_path}")
-        return
-
     processed_files = load_processed_files(log_file)
     filename = os.path.basename(file_path)
 
@@ -148,49 +148,59 @@ def inject_js_to_file(html_file, js_code, log_file='js_injected_files.txt'):
 def index():
     return render_template('index.html')
 
+@app.route('/set_directory', methods=['POST'])
+def set_directory():
+    directory_path = request.form.get('directory_path')
+    if os.path.exists(directory_path) and os.path.isdir(directory_path):
+        session['WEBSITES_DIR'] = directory_path
+        return redirect(url_for('index'))
+    else:
+        return "Invalid directory path. Please try again."
+
 @app.route('/inject_js', methods=['POST'])
 def inject_js():
     site_name = request.form.get('site_name')
     js_code = request.form.get('js_code')
-    full_path = os.path.join(WEBSITES_DIR, site_name)
-
-    if os.path.exists(full_path) and full_path.endswith('.html'):
-        process_html_file_if_needed(full_path, PROCESSED_FILES_LOG)
-        inject_js_to_file(full_path, js_code, JS_INJECTED_FILES_LOG)
-        return render_template('code_injected.html', site_name=site_name)
+    if 'WEBSITES_DIR' in session:
+        full_path = os.path.join(session['WEBSITES_DIR'], site_name)
+        if os.path.exists(full_path) and full_path.endswith('.html'):
+            process_html_file_if_needed(full_path, PROCESSED_FILES_LOG)
+            inject_js_to_file(full_path, js_code, JS_INJECTED_FILES_LOG)
+            return render_template('code_injected.html', site_name=site_name)
+        else:
+            return render_template('404.html', site_name=site_name)
     else:
-        return render_template('404.html', site_name=site_name)
+        return "Directory path not set. Please set it first."
 
 @app.route('/websites')
 def list_websites():
-    websites = [f for f in os.listdir(WEBSITES_DIR) if f.endswith('.html')]
-    return render_template('websites.html', websites=websites)
+    if 'WEBSITES_DIR' in session:
+        websites = [f for f in os.listdir(session['WEBSITES_DIR']) if f.endswith('.html')]
+        return render_template('websites.html', websites=websites)
+    else:
+        return "Directory path not set. Please set it first."
 
 @app.route('/delete_website', methods=['POST'])
 def delete_website():
     site_name = request.form.get('site_name')
-    full_path = os.path.join(WEBSITES_DIR, site_name)
+    if 'WEBSITES_DIR' in session:
+        full_path = os.path.join(session['WEBSITES_DIR'], site_name)
+        if os.path.exists(full_path):
+            os.remove(full_path)
+            folder_name = os.path.splitext(site_name)[0] + '_files'
+            folder_path = os.path.join(session['WEBSITES_DIR'], folder_name)
+            if os.path.exists(folder_path) and os.path.isdir(folder_path):
+                shutil.rmtree(folder_path)
 
-    if os.path.exists(full_path):
-        # Remove the HTML file
-        os.remove(full_path)
-        
-        # Check if there's a corresponding folder with the same name as the HTML file, but with '_files' appended
-        folder_name = os.path.splitext(site_name)[0] + '_files'
-        folder_path = os.path.join(WEBSITES_DIR, folder_name)
-        if os.path.exists(folder_path) and os.path.isdir(folder_path):
-            shutil.rmtree(folder_path)
+            remove_file_from_log(PROCESSED_FILES_LOG, site_name)
+            remove_file_from_log(JS_INJECTED_FILES_LOG, site_name)
+            remove_visit_count(site_name)
 
-        # Remove the file from both log files
-        remove_file_from_log(PROCESSED_FILES_LOG, site_name)
-        remove_file_from_log(JS_INJECTED_FILES_LOG, site_name)
-
-        # Remove the visit count for the deleted website
-        remove_visit_count(site_name)
-
-        return redirect(url_for('list_websites'))
+            return redirect(url_for('list_websites'))
+        else:
+            return render_template('404.html', site_name=site_name)
     else:
-        return render_template('404.html', site_name=site_name)
+        return "Directory path not set. Please set it first."
 
 @app.route('/visit_counts')
 def visit_counts():
@@ -199,16 +209,17 @@ def visit_counts():
 
 @app.route('/<path:site_path>')
 def serve_site(site_path):
-    full_path = os.path.join(WEBSITES_DIR, site_path)
-
-    if os.path.exists(full_path):
-        if full_path.endswith(".html"):
-            process_html_file_if_needed(full_path, PROCESSED_FILES_LOG)
-            # Increment the visit count for the website
-            increment_visit_count(site_path)
-        return send_from_directory(WEBSITES_DIR, site_path)
+    if 'WEBSITES_DIR' in session:
+        full_path = os.path.join(session['WEBSITES_DIR'], site_path)
+        if os.path.exists(full_path):
+            if full_path.endswith(".html"):
+                increment_visit_count(site_path)  # Increment the visit count only if the file exists in WEBSITES_DIR
+                process_html_file_if_needed(full_path, PROCESSED_FILES_LOG)
+            return send_from_directory(session['WEBSITES_DIR'], site_path)
+        else:
+            return render_template('404.html', site_name=site_path)
     else:
-        return render_template('404.html', site_name=site_path)
+        return "Directory path not set. Please set it first."
 
 if __name__ == '__main__':
     app.run(debug=True)

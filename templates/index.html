@@ -20,7 +20,7 @@
             padding: 10px;
             margin: 10px 0;
         }
-        #site_name {
+        #directory_path, #site_name {
             height: 50px;
             border-radius: 10px;
             border: none;
@@ -79,9 +79,14 @@
 <body>
     <p><a href="{{ url_for('list_websites') }}">View Saved Websites</a>   |   <a href="{{ url_for('visit_counts') }}">View Visit Counts</a></p>
     <h1 class="main-heading">Visualize Chatbot on your Website <img class="robo-img" src="../static/robo.png"></h1>
-    <p>Add the website name and the JavaScript code you want to insert below.</p>
+    <p>Set your local directory path, add the website name, and the JavaScript code you want to insert below.</p>
     
-    <form action="/inject_js" method="post">
+    <form action="/set_directory" method="post">
+        <input type="text" id="directory_path" name="directory_path" required placeholder="Enter the local directory path"><br>
+        <button type="submit" class="submit_button">Set Directory</button>
+    </form>
+
+    <form action="/inject_js" method="post" style="margin-top: 50px;">
         <input type="text" id="site_name" name="site_name" required placeholder="Enter the website name" pattern="[a-zA-Z0-9_-]+" title="Only alphanumeric characters, underscores, and dashes are allowed."><br>
         <textarea id="js_code" name="js_code" rows="10" required placeholder="Insert the JavaScript code of chatbot"></textarea><br>
         <button type="submit" class="submit_button">Inject JavaScript</button>

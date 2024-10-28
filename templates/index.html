@@ -20,7 +20,7 @@
             padding: 10px;
             margin: 10px 0;
         }
-        #directory_path, #site_name {
+        #site_name {
             height: 50px;
             border-radius: 10px;
             border: none;
@@ -77,13 +77,17 @@
     </style>
 </head>
 <body>
-    <p><a href="{{ url_for('list_websites') }}">View Saved Websites</a>   |   <a href="{{ url_for('visit_counts') }}">View Visit Counts</a></p>
+    <p><a href="{{ url_for('list_websites') }}">View Saved Websites</a> | <a href="{{ url_for('visit_counts') }}">View Visit Counts</a></p>
     <h1 class="main-heading">Visualize Chatbot on your Website <img class="robo-img" src="../static/robo.png"></h1>
-    <p>Set your local directory path, add the website name, and the JavaScript code you want to insert below.</p>
     
-    <form action="/set_directory" method="post">
-        <input type="text" id="directory_path" name="directory_path" required placeholder="Enter the local directory path"><br>
-        <button type="submit" class="submit_button">Set Directory</button>
+    <form action="/upload_directory" method="post" enctype="multipart/form-data">
+        <input type="file" name="directory" webkitdirectory directory multiple required>
+        <button type="submit" class="submit_button">Upload Directory</button>
+    </form>
+
+    <form action="/upload_file" method="post" enctype="multipart/form-data" style="margin-top: 50px;">
+        <input type="file" name="html_file" accept=".html" required>
+        <button type="submit" class="submit_button">Upload HTML File</button>
     </form>
 
     <form action="/inject_js" method="post" style="margin-top: 50px;">

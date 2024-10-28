@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, send_from_directory
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify
 import os
 import shutil
 from bs4 import BeautifulSoup
@@ -10,6 +10,10 @@ app.secret_key = 'your_secret_key'  # Needed for session handling
 PROCESSED_FILES_LOG = 'processed_files.txt'
 JS_INJECTED_FILES_LOG = 'js_injected_files.txt'
 VISIT_COUNTS_LOG = 'visit_counts.txt'
+
+# Directory for uploaded websites
+UPLOAD_FOLDER = 'websites'
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 # Functions for processing HTML files
 def load_processed_files(log_file):
@@ -52,11 +56,7 @@ def save_visit_counts(visit_counts):
 
 def increment_visit_count(filename):
     """Increment the visit count for the given filename only if it exists in the websites directory."""
-    if 'WEBSITES_DIR' not in session:
-        return
-
-    # List only HTML files in the directory to ensure the count is only for those
-    websites_dir_files = [f for f in os.listdir(session['WEBSITES_DIR']) if f.endswith('.html')]
+    websites_dir_files = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith('.html')]
 
     if filename not in websites_dir_files:
         print(f"File {filename} does not match any file in the directory, count not incremented.")
@@ -110,7 +110,7 @@ def remove_href_from_file(html_file):
     print(f"Modified HTML saved: {html_file}")
 
 def process_html_file_if_needed(file_path, log_file='processed_files.txt'):
-    """Process the HTML file if it hasn't been processed already, only within the base directory."""
+    """Process the HTML file if it hasn't been processed already."""
     processed_files = load_processed_files(log_file)
     filename = os.path.basename(file_path)
 
@@ -148,59 +148,82 @@ def inject_js_to_file(html_file, js_code, log_file='js_injected_files.txt'):
 def index():
     return render_template('index.html')
 
-@app.route('/set_directory', methods=['POST'])
-def set_directory():
-    directory_path = request.form.get('directory_path')
-    if os.path.exists(directory_path) and os.path.isdir(directory_path):
-        session['WEBSITES_DIR'] = directory_path
-        return redirect(url_for('index'))
-    else:
-        return "Invalid directory path. Please try again."
+@app.route('/upload_directory', methods=['POST'])
+def upload_directory():
+    if 'directory' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    files = request.files.getlist('directory')
+
+    for file in files:
+        if file.filename == '':
+            return jsonify({"error": "No selected file"}), 400
+        
+        # Construct the full path where the directory structure will be saved
+        save_path = os.path.join(UPLOAD_FOLDER, file.filename)
+        
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+
+        # Save the file
+        file.save(save_path)
+
+    return jsonify({"message": "Directory uploaded successfully!"}), 200
+
+@app.route('/upload_file', methods=['POST'])
+def upload_file():
+    if 'html_file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files['html_file']
+
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    # Save the uploaded HTML file
+    save_path = os.path.join(UPLOAD_FOLDER, file.filename)
+    file.save(save_path)
+
+    return jsonify({"message": "HTML file uploaded successfully!"}), 200
 
 @app.route('/inject_js', methods=['POST'])
 def inject_js():
     site_name = request.form.get('site_name')
     js_code = request.form.get('js_code')
-    if 'WEBSITES_DIR' in session:
-        full_path = os.path.join(session['WEBSITES_DIR'], site_name)
-        if os.path.exists(full_path) and full_path.endswith('.html'):
-            process_html_file_if_needed(full_path, PROCESSED_FILES_LOG)
-            inject_js_to_file(full_path, js_code, JS_INJECTED_FILES_LOG)
-            return render_template('code_injected.html', site_name=site_name)
-        else:
-            return render_template('404.html', site_name=site_name)
+    full_path = os.path.join(UPLOAD_FOLDER, site_name)
+    
+    if os.path.exists(full_path) and full_path.endswith('.html'):
+        process_html_file_if_needed(full_path, PROCESSED_FILES_LOG)
+        inject_js_to_file(full_path, js_code, JS_INJECTED_FILES_LOG)
+        return render_template('code_injected.html', site_name=site_name)
     else:
-        return "Directory path not set. Please set it first."
+        return render_template('404.html', site_name=site_name)
 
 @app.route('/websites')
 def list_websites():
-    if 'WEBSITES_DIR' in session:
-        websites = [f for f in os.listdir(session['WEBSITES_DIR']) if f.endswith('.html')]
-        return render_template('websites.html', websites=websites)
-    else:
-        return "Directory path not set. Please set it first."
+    websites = [f for f in os.listdir(UPLOAD_FOLDER) if f.endswith('.html')]
+    return render_template('websites.html', websites=websites)
 
 @app.route('/delete_website', methods=['POST'])
 def delete_website():
     site_name = request.form.get('site_name')
-    if 'WEBSITES_DIR' in session:
-        full_path = os.path.join(session['WEBSITES_DIR'], site_name)
-        if os.path.exists(full_path):
-            os.remove(full_path)
-            folder_name = os.path.splitext(site_name)[0] + '_files'
-            folder_path = os.path.join(session['WEBSITES_DIR'], folder_name)
-            if os.path.exists(folder_path) and os.path.isdir(folder_path):
-                shutil.rmtree(folder_path)
+    full_path = os.path.join(UPLOAD_FOLDER, site_name)
+    if os.path.exists(full_path):
+        os.remove(full_path)
+        folder_name = os.path.splitext(site_name)[0] + '_files'
+        folder_path = os.path.join(UPLOAD_FOLDER, folder_name)
+        if os.path.exists(folder_path) and os.path.isdir(folder_path):
+            shutil.rmtree(folder_path)
 
-            remove_file_from_log(PROCESSED_FILES_LOG, site_name)
-            remove_file_from_log(JS_INJECTED_FILES_LOG, site_name)
-            remove_visit_count(site_name)
+        remove_file_from_log(PROCESSED_FILES_LOG, site_name)
+        remove_file_from_log(JS_INJECTED_FILES_LOG, site_name)
 
-            return redirect(url_for('list_websites'))
-        else:
-            return render_template('404.html', site_name=site_name)
+        # Remove visit count for the deleted website
+        remove_visit_count(site_name)
+
+        return redirect(url_for('list_websites'))
     else:
-        return "Directory path not set. Please set it first."
+        return render_template('404.html', site_name=site_name)
 
 @app.route('/visit_counts')
 def visit_counts():
@@ -209,17 +232,14 @@ def visit_counts():
 
 @app.route('/<path:site_path>')
 def serve_site(site_path):
-    if 'WEBSITES_DIR' in session:
-        full_path = os.path.join(session['WEBSITES_DIR'], site_path)
-        if os.path.exists(full_path):
-            if full_path.endswith(".html"):
-                increment_visit_count(site_path)  # Increment the visit count only if the file exists in WEBSITES_DIR
-                process_html_file_if_needed(full_path, PROCESSED_FILES_LOG)
-            return send_from_directory(session['WEBSITES_DIR'], site_path)
-        else:
-            return render_template('404.html', site_name=site_path)
+    full_path = os.path.join(UPLOAD_FOLDER, site_path)
+    if os.path.exists(full_path):
+        if full_path.endswith(".html"):
+            increment_visit_count(site_path)  # Increment the visit count only if the file exists in WEBSITES_DIR
+            process_html_file_if_needed(full_path, PROCESSED_FILES_LOG)
+        return send_from_directory(UPLOAD_FOLDER, site_path)
     else:
-        return "Directory path not set. Please set it first."
+        return render_template('404.html', site_name=site_path)
 
 if __name__ == '__main__':
     app.run(debug=True)

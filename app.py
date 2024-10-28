@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory, jsonify, session
 import os
 import shutil
 from bs4 import BeautifulSoup
@@ -46,7 +46,9 @@ def load_visit_counts():
             for line in f:
                 name, count = line.strip().split(':')
                 visit_counts[name] = int(count)
-    return visit_counts
+
+    reversed_visit_counts = {k: v for k, v in list(visit_counts.items())[::-1]}
+    return reversed_visit_counts
 
 def save_visit_counts(visit_counts):
     """Save visit counts to the log file."""
@@ -146,7 +148,31 @@ def inject_js_to_file(html_file, js_code, log_file='js_injected_files.txt'):
 
 @app.route('/')
 def index():
+    if not session.get('logged_in'):  # Check if the user is logged in
+        return redirect(url_for('login'))  # Redirect to login if not logged in
     return render_template('index.html')
+
+# Load the password from the password file
+def load_password():
+    try:
+        with open('password.txt', 'r') as f:
+            return f.read().strip()
+    except FileNotFoundError:
+        return None
+    
+
+# Route for the password page
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if password == load_password():
+            session['logged_in'] = True  # Set session variable for logged in status
+            return redirect(url_for('index'))  # Redirect to the main app
+        else:
+            return render_template('login.html', error="Incorrect password. Please try again.")
+    return render_template('login.html')
+
 
 @app.route('/upload_directory', methods=['POST'])
 def upload_directory():

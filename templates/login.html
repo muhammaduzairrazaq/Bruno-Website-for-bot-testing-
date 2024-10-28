@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+            font-size: 25px;
+        }
+        h1 {
+            font-size: 25px;
+            color: rgb(47, 113, 255);
+        }
+        input {
+            width: 50%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+        }
+        .submit_button {
+            padding: 10px 20px;
+            border: none;
+            background: linear-gradient(to right, rgb(47, 113, 255), #FFFFFF);
+            color: white;
+            font-size: 18px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        .submit_button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Please Enter the Password</h1>
+    <form action="/login" method="post">
+        <input type="password" name="password" required placeholder="Enter password"><br>
+        <button type="submit" class="submit_button">Login</button>
+    </form>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</body>
+</html>

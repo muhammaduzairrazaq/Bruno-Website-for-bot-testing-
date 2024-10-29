@@ -65,10 +65,6 @@
         form {
             margin-top: 100px;
         }
-        .robo-img {
-            height: 80px;
-            width: 80px;
-        }
         a {
             font-size: 18px;
             color: rgb(47, 113, 255);
@@ -81,7 +77,7 @@
 </head>
 <body>
     <p><a href="{{ url_for('list_websites') }}">View Saved Websites</a> | <a href="{{ url_for('visit_counts') }}">View Visit Counts</a></p>
-    <h1 class="main-heading">Visualize Chatbot on your Website <img class="robo-img" src="../static/robo.png"></h1>
+    <h1 class="main-heading">Visualize Chatbot on your Website 🤖</h1>
     
     <form action="/upload_directory" method="post" enctype="multipart/form-data">
         <input class="field-upload" type="file" name="directory" webkitdirectory directory multiple required>

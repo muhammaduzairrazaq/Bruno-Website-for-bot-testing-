@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
     <style>
+        .field-upload {
+            width: 42%;
+        }
         body {
             font-family: Arial, sans-serif;
             text-align: center;
@@ -63,8 +66,8 @@
             margin-top: 100px;
         }
         .robo-img {
-            height: 100px;
-            width: 100px;
+            height: 80px;
+            width: 80px;
         }
         a {
             font-size: 18px;
@@ -81,12 +84,12 @@
     <h1 class="main-heading">Visualize Chatbot on your Website <img class="robo-img" src="../static/robo.png"></h1>
     
     <form action="/upload_directory" method="post" enctype="multipart/form-data">
-        <input type="file" name="directory" webkitdirectory directory multiple required>
+        <input class="field-upload" type="file" name="directory" webkitdirectory directory multiple required>
         <button type="submit" class="submit_button">Upload Directory</button>
     </form>
 
     <form action="/upload_file" method="post" enctype="multipart/form-data" style="margin-top: 50px;">
-        <input type="file" name="html_file" accept=".html" required>
+        <input class="field-upload" type="file" name="html_file" accept=".html" required>
         <button type="submit" class="submit_button">Upload HTML File</button>
     </form>
 

@@ -1,7 +1,3 @@
-www.px1.eu {
-    redir https://px1.eu{uri}
-}
-
 px1.eu {
     reverse_proxy localhost:8000
 }

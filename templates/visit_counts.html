@@ -56,12 +56,20 @@
     <table>
         <tr>
             <th>Website</th>
-            <th>Visit Count</th>
+            <th>1 Day Visits</th>
+            <th>3 Days Visits</th>
+            <th>7 Days Visits</th>
+            <th>Total Visits</th>
         </tr>
-        {% for website, count in visit_counts.items() %}
+        {% for website, counts in visit_counts.items() %}
         <tr>
-            <td>{{ website }}</td>
-            <td>{{ count }}</td>
+            <td>
+                <a href="{{ url_for('serve_site', site_path=website) }}">{{ website }}</a>
+            </td>
+            <td>{{ counts['1_day'] }}</td>
+            <td>{{ counts['3_day'] }}</td>
+            <td>{{ counts['7_day'] }}</td>
+            <td>{{ counts['total'] }}</td>
         </tr>
         {% endfor %}
     </table>

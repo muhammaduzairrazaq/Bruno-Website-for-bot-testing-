@@ -63,7 +63,7 @@
     <ul>
         {% for website in websites %}
             <li>
-                <span>{{ website }}</span>
+                <a href="{{ url_for('serve_site', site_path=website) }}">{{ website }}</a>
                 <form action="/delete_website" method="post" style="display:inline;">
                     <input type="hidden" name="site_name" value="{{ website }}">
                     <button type="submit">Delete</button>

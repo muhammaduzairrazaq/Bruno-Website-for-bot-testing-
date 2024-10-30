@@ -55,10 +55,16 @@
             color: black;
         }
         .main-heading {
-            color: rgb(47, 113, 255);
-            font-size: 60px !important;
-            font: normal normal normal medium/normal serif;
+        color: rgb(47, 113, 255);
+        font-size: 60px !important;
+        font: normal normal normal medium/normal serif;
+        text-shadow: 0 10px 8px rgba(107, 107, 107, 0.5);
         }
+
+        .main-heading:hover {
+            text-shadow: 0 10px 8px rgba(0, 106, 245, 0.5);
+        }
+
         p {
             font-size: 18px !important;
         }
@@ -73,10 +79,16 @@
         a:hover {
             text-decoration: underline;
         }
+        .top-links {
+            text-shadow: 0 8px 8px rgba(107, 107, 107, 0.5);
+        }
+        .top-links a {
+            font-size: 20px;
+        }
     </style>
 </head>
 <body>
-    <p><a href="{{ url_for('list_websites') }}">View Saved Websites</a> | <a href="{{ url_for('visit_counts') }}">View Visit Counts</a></p>
+    <p class="top-links"><a href="{{ url_for('list_websites') }}">View Saved Websites</a> | <a href="{{ url_for('visit_counts') }}">View Visit Counts</a></p>
     <h1 class="main-heading">Visualize Chatbot on your Website</h1>
     
     <form action="/upload_directory" method="post" enctype="multipart/form-data">
